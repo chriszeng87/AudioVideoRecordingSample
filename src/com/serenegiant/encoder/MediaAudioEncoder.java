@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
+import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
@@ -203,6 +204,10 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
             }
         }
    		return result;
+    }
+    
+    protected void postProcessEncodedData(ByteBuffer byteBuffer, BufferInfo bufferInfo) {
+    	
     }
 
 }

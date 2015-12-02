@@ -27,6 +27,7 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 
 import android.media.MediaCodec;
+import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;
 import android.util.Log;
 
@@ -363,6 +364,7 @@ LOOP:	while (mIsCapturing) {
                     }
                     // write encoded data to muxer(need to adjust presentationTimeUs.
                    	mBufferInfo.presentationTimeUs = getPTSUs();
+                   	postProcessEncodedData(encodedData, mBufferInfo);
                    	muxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
 					prevOutputPTSUs = mBufferInfo.presentationTimeUs;
                 }
@@ -393,5 +395,7 @@ LOOP:	while (mIsCapturing) {
 			result = (prevOutputPTSUs - result) + result;
 		return result;
     }
+    
+    protected abstract void postProcessEncodedData(ByteBuffer byteBuffer, BufferInfo bufferInfo);
 
 }

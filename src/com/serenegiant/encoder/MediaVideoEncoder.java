@@ -23,8 +23,10 @@ package com.serenegiant.encoder;
 */
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import android.media.MediaCodec;
+import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
@@ -219,6 +221,13 @@ public class MediaVideoEncoder extends MediaEncoder {
 		if (DEBUG) Log.d(TAG, "sending EOS to encoder");
 		mMediaCodec.signalEndOfInputStream();	// API >= 18
 		mIsEOS = true;
+	}
+
+	@Override
+	protected void postProcessEncodedData(ByteBuffer byteBuffer,
+			BufferInfo bufferInfo) {
+
+		
 	}
 
 }
