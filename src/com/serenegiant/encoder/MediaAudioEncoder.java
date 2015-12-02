@@ -22,8 +22,11 @@ package com.serenegiant.encoder;
  * All files in the folder are under this Apache License, Version 2.0.
 */
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import com.serenegiant.util.Utils;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -44,6 +47,8 @@ public class MediaAudioEncoder extends MediaEncoder {
     private static final int BIT_RATE = 64000;
 	public static final int SAMPLES_PER_FRAME = 1024;	// AAC, bytes/frame/channel
 	public static final int FRAMES_PER_BUFFER = 25; 	// AAC, frame/buffer/sec
+	
+    private FileOutputStream outputStream;
 
     private AudioThread mAudioThread = null;
 
@@ -64,6 +69,17 @@ public class MediaAudioEncoder extends MediaEncoder {
         }
 		if (DEBUG) Log.i(TAG, "selected codec: " + audioCodecInfo.getName());
 
+		
+        outputStream = null;
+        String fileName =  "/sdcard/test2015.aac";
+        try {
+            outputStream = new FileOutputStream(fileName);
+            Log.d(TAG, "encoded output will be saved as " + fileName);
+        } catch (Exception ioe) {
+            Log.w(TAG, "Unable to create debug output file " + fileName);
+            throw new RuntimeException(ioe);
+        }
+		
         final MediaFormat audioFormat = MediaFormat.createAudioFormat(MIME_TYPE, SAMPLE_RATE, 1);
 		audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
 		audioFormat.setInteger(MediaFormat.KEY_CHANNEL_MASK, AudioFormat.CHANNEL_IN_MONO);
@@ -97,6 +113,14 @@ public class MediaAudioEncoder extends MediaEncoder {
 
 	@Override
     protected void release() {
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException ioe) {
+                Log.w(TAG, "failed closing debug file");
+                throw new RuntimeException(ioe);
+            }
+        }
 		mAudioThread = null;
 		super.release();
     }
@@ -204,10 +228,71 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
             }
         }
    		return result;
-    }
+    } 
+    
+    static int m_channel = 2; // 双声道
+    static int m_profile = 1; // AAC(Version 4) LC
+
+//    static byte[] add_adts_header() {
+//    	byte[] adts_header = new byte[14];
+//    	0101
+//    	       00
+//    	fff1 504
+//    	*p++ = 0xff;                                    //syncword  (0xfff, high_8bits) 
+//    	*p = 0xf0;                                      //syncword  (0xfff, low_4bits)
+//    	*p |= (0 << 3);                                 //ID (0, 1bit)
+//    	*p |= (0 << 1);                                 //layer (0, 2bits)
+//    	*p |= 1;                                        //protection_absent (1, 1bit)
+//    	p++;
+//    	*p = (unsigned char) ((m_profile & 0x3) << 6);  //profile (profile, 2bits)  01
+//    	*p |= ((m_sampleRateIndex & 0xf) << 2);         //sampling_frequency_index (sam_idx, 4bits) 0100
+//    	*p |= (0 << 1);                                 //private_bit (0, 1bit)
+//    	*p |= ((m_channel & 0x4) >> 2);                 //channel_configuration (channel, high_1bit) 0 
+//    	p++;
+//    	*p = ((m_channel & 0x3) << 6);                  //channel_configuration (channel, low_2bits) 10
+//    	*p |= (0 << 5);                                 //original/copy (0, 1bit)
+//    	*p |= (0 << 4);                                 //home  (0, 1bit);
+//    	*p |= (0 << 3);                                 //copyright_identification_bit (0, 1bit)
+//    	*p |= (0 << 2);                                 //copyright_identification_start (0, 1bit)
+//    	*p |= ((frame_len & 0x1800) >> 11);             //frame_length (value, high_2bits)
+//    	p++;
+//    	*p++ = (unsigned char) ((frame_len & 0x7f8) >> 3);  //frame_length (value, middle_8bits)
+//    	*p = (unsigned char) ((frame_len & 0x7) << 5);      //frame_length (value, low_3bits)
+//    	*p |= 0x1f;                                         //adts_buffer_fullness (0x7ff, high_5bits)
+//    	p++;
+//    	*p = 0xfc;                                          //adts_buffer_fullness (0x7ff, low_6bits)
+//    	*p |= 0;                                            //number_of_raw_data_blocks_in_frame (0, 2bits);
+//    	p++;
+//    }
     
     protected void postProcessEncodedData(ByteBuffer byteBuffer, BufferInfo bufferInfo) {
-    	
+    	if (outputStream != null) {
+            if (bufferInfo.size > 0) {
+                byte[] data = new byte[bufferInfo.size];
+                byteBuffer.get(data);
+                byteBuffer.position(bufferInfo.offset);
+                byte[] header = new byte[7];
+                header[0] = (byte)0xFF;
+                header[1] = (byte)0xF1;
+                header[2] = (byte)0x50;
+                header[3] = (byte)0x40;;
+                int frame_len = bufferInfo.size + 7;
+                header[3] |= (byte)((frame_len & 0x1800) >> 11);
+                header[4] |= (byte)((frame_len & 0x7f8) >> 3);
+                header[5] = (byte)((frame_len & 0x7) << 5);
+                header[5] |= (byte)0x1F;
+                header[6] = (byte)0xFC;
+                header[6] |= 0;
+                
+                try {
+                	outputStream.write(header);
+					outputStream.write(data);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+    	}
     }
 
 }
