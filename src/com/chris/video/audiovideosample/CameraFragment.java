@@ -1,4 +1,4 @@
-package com.serenegiant.audiovideosample;
+package com.chris.video.audiovideosample;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -34,10 +34,10 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.serenegiant.encoder.MediaAudioEncoder;
-import com.serenegiant.encoder.MediaEncoder;
-import com.serenegiant.encoder.MediaMuxerWrapper;
-import com.serenegiant.encoder.MediaVideoEncoder;
+import com.chris.video.encoder.MediaAudioEncoder;
+import com.chris.video.encoder.MediaEncoder;
+import com.chris.video.encoder.MediaMuxerWrapper;
+import com.chris.video.encoder.MediaVideoEncoder;
 import com.serenegiant.mediaaudiotest.R;
 
 public class CameraFragment extends Fragment {

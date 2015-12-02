@@ -1,4 +1,4 @@
-package com.serenegiant.encoder;
+package com.chris.video.encoder;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -26,8 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.serenegiant.util.Utils;
-
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
@@ -36,7 +34,10 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
+
+import com.chris.video.RTMPPublisher;
 
 public class MediaAudioEncoder extends MediaEncoder {
 	private static final boolean DEBUG = false;	// TODO set false on release
@@ -48,7 +49,9 @@ public class MediaAudioEncoder extends MediaEncoder {
 	public static final int SAMPLES_PER_FRAME = 1024;	// AAC, bytes/frame/channel
 	public static final int FRAMES_PER_BUFFER = 25; 	// AAC, frame/buffer/sec
 	
+    private ParcelFileDescriptor[] pipeDes;
     private FileOutputStream outputStream;
+    private RTMPPublisher mPublisher;
 
     private AudioThread mAudioThread = null;
 
@@ -69,16 +72,24 @@ public class MediaAudioEncoder extends MediaEncoder {
         }
 		if (DEBUG) Log.i(TAG, "selected codec: " + audioCodecInfo.getName());
 
-		
+        mPublisher = new RTMPPublisher();
+        try {
+            pipeDes = ParcelFileDescriptor.createPipe();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
         outputStream = null;
         String fileName =  "/sdcard/test2015.aac";
         try {
-            outputStream = new FileOutputStream(fileName);
+            outputStream = new FileOutputStream(pipeDes[1].getFileDescriptor());
             Log.d(TAG, "encoded output will be saved as " + fileName);
         } catch (Exception ioe) {
             Log.w(TAG, "Unable to create debug output file " + fileName);
             throw new RuntimeException(ioe);
         }
+        mPublisher.publish(pipeDes[0].getFd());
 		
         final MediaFormat audioFormat = MediaFormat.createAudioFormat(MIME_TYPE, SAMPLE_RATE, 1);
 		audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
@@ -121,6 +132,13 @@ public class MediaAudioEncoder extends MediaEncoder {
                 throw new RuntimeException(ioe);
             }
         }
+        try {
+			pipeDes[0].close();
+			pipeDes[1].close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		mAudioThread = null;
 		super.release();
     }
@@ -268,6 +286,7 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
     protected void postProcessEncodedData(ByteBuffer byteBuffer, BufferInfo bufferInfo) {
     	if (outputStream != null) {
             if (bufferInfo.size > 0) {
+            	Log.e("Chris","-------postProcessEncodedData");
                 byte[] data = new byte[bufferInfo.size];
                 byteBuffer.get(data);
                 byteBuffer.position(bufferInfo.offset);
@@ -294,5 +313,9 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
             }
     	}
     }
+    
+    static {
+      System.loadLibrary("publisher");
+  }
 
 }

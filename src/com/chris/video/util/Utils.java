@@ -1,4 +1,4 @@
-package com.serenegiant.util;
+package com.chris.video.util;
 
 import java.util.Locale;
 
