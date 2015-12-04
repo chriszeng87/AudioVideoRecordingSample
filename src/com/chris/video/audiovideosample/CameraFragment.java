@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.chris.video.RTMPPublisher;
 import com.chris.video.encoder.MediaAudioEncoder;
 import com.chris.video.encoder.MediaEncoder;
 import com.chris.video.encoder.MediaMuxerWrapper;
@@ -60,6 +61,8 @@ public class CameraFragment extends Fragment {
 	 * muxer for audio/video recording
 	 */
 	private MediaMuxerWrapper mMuxer;
+	
+	private RTMPPublisher mPublisher;
 
 	public CameraFragment() {
 		// need default constructor
@@ -134,14 +137,15 @@ public class CameraFragment extends Fragment {
 		if (DEBUG) Log.v(TAG, "startRecording:");
 		try {
 			mRecordButton.setColorFilter(0xffff0000);	// turn red
+			mPublisher = new RTMPPublisher();
 			mMuxer = new MediaMuxerWrapper(".mp4");	// if you record audio only, ".m4a" is also OK.
 			if (true) {
 				// for video capturing
-				new MediaVideoEncoder(mMuxer, mMediaEncoderListener, mCameraView.getVideoWidth(), mCameraView.getVideoHeight());
+				new MediaVideoEncoder(mPublisher, mMuxer, mMediaEncoderListener, mCameraView.getVideoWidth(), mCameraView.getVideoHeight());
 			}
 			if (true) {
 				// for audio capturing
-				new MediaAudioEncoder(mMuxer, mMediaEncoderListener);
+				new MediaAudioEncoder(mPublisher, mMuxer, mMediaEncoderListener);
 			}
 			mMuxer.prepare();
 			mMuxer.startRecording();

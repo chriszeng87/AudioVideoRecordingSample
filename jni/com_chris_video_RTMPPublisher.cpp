@@ -8,7 +8,8 @@ extern "C" {
     #include "ffmpeg.h"
 }
 
-static int pipeid;
+static int audio_pipe_id;
+static int video_pipe_id;
 
 
 //ffmpeg -re -i test2015.h264 -vcodec copy -f flv rtmp://***
@@ -23,7 +24,7 @@ void * start_publish(void* args)
     arguments[2] = "-i";
     char input[20];
     memset(input, 0, sizeof(input));
-    sprintf(input, "pipe:%d", pipeid);
+    sprintf(input, "pipe:%d", video_pipe_id);
     arguments[3] = input;//"/sdcard/test2016.aac"; //pipe
     arguments[4] = "-acodec";
     arguments[5] = "copy";
@@ -66,9 +67,19 @@ void * start_publish(void* args)
 //    pthread_exit(0);
 }
 
+JNIEXPORT void JNICALL Java_com_chris_video_RTMPPublisher_setAudioPipeId
+  (JNIEnv * env, jobject obj, jint audioPipeId) {
+	audio_pipe_id = audioPipeId;
+}
+
+JNIEXPORT void JNICALL Java_com_chris_video_RTMPPublisher_setVideoPipeId
+  (JNIEnv * env, jobject obj, jint videoPipeId) {
+	video_pipe_id = videoPipeId;
+}
+
+
 JNIEXPORT void JNICALL Java_com_chris_video_RTMPPublisher_publish
-(JNIEnv * env, jobject obj, jint pipeId) {
-    pipeid = pipeId;
+(JNIEnv * env, jobject obj) {
     pthread_t start_thread;
     pthread_create(&start_thread, NULL, start_publish,  NULL);
 

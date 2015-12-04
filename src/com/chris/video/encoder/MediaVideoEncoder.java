@@ -22,8 +22,10 @@ package com.chris.video.encoder;
  * All files in the folder are under this Apache License, Version 2.0.
 */
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import android.media.MediaCodec;
 import android.media.MediaCodec.BufferInfo;
@@ -31,9 +33,11 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.opengl.EGLContext;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.Surface;
 
+import com.chris.video.RTMPPublisher;
 import com.chris.video.glutils.RenderHandler;
 
 public class MediaVideoEncoder extends MediaEncoder {
@@ -49,10 +53,15 @@ public class MediaVideoEncoder extends MediaEncoder {
     private final int mHeight;
     private RenderHandler mRenderHandler;
     private Surface mSurface;
+    private ParcelFileDescriptor[] pipeDes;
+    private FileOutputStream outputStream;
+    private RTMPPublisher mPublisher;
+    private boolean firstFrame;
 
-	public MediaVideoEncoder(final MediaMuxerWrapper muxer, final MediaEncoderListener listener, final int width, final int height) {
+	public MediaVideoEncoder(RTMPPublisher publisher, final MediaMuxerWrapper muxer, final MediaEncoderListener listener, final int width, final int height) {
 		super(muxer, listener);
 		if (DEBUG) Log.i(TAG, "MediaVideoEncoder: ");
+		mPublisher = publisher;
 		mWidth = width;
 		mHeight = height;
 		mRenderHandler = RenderHandler.createHandler(TAG);
@@ -78,6 +87,7 @@ public class MediaVideoEncoder extends MediaEncoder {
 		if (DEBUG) Log.i(TAG, "prepare: ");
         mTrackIndex = -1;
         mMuxerStarted = mIsEOS = false;
+        firstFrame = true;
 
         final MediaCodecInfo videoCodecInfo = selectVideoCodec(MIME_TYPE);
         if (videoCodecInfo == null) {
@@ -85,6 +95,25 @@ public class MediaVideoEncoder extends MediaEncoder {
             return;
         }
 		if (DEBUG) Log.i(TAG, "selected codec: " + videoCodecInfo.getName());
+		
+        try {
+            pipeDes = ParcelFileDescriptor.createPipe();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        mPublisher.setVideoPipeId(pipeDes[0].getFd());
+        mPublisher.publish();
+
+        outputStream = null;
+        String fileName =  "/sdcard/test2016.h264";
+        try {
+            outputStream = new FileOutputStream(pipeDes[1].getFileDescriptor());
+            Log.d(TAG, "encoded output will be saved as " + fileName);
+        } catch (Exception ioe) {
+            Log.w(TAG, "Unable to create debug output file " + fileName);
+            throw new RuntimeException(ioe);
+        }
 
         final MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);	// API >= 18
@@ -220,14 +249,68 @@ public class MediaVideoEncoder extends MediaEncoder {
     protected void signalEndOfInputStream() {
 		if (DEBUG) Log.d(TAG, "sending EOS to encoder");
 		mMediaCodec.signalEndOfInputStream();	// API >= 18
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException ioe) {
+                Log.w(TAG, "failed closing debug file");
+                throw new RuntimeException(ioe);
+            }
+        }
 		mIsEOS = true;
 	}
 
 	@Override
 	protected void postProcessEncodedData(ByteBuffer byteBuffer,
 			BufferInfo bufferInfo) {
+		if(firstFrame) {
+	        String avcC = "000000016742801FDA02D0286806D0A1350000000168CE06E2";
 
+	        try {
+				outputStream.write(hexStr2Bytes(avcC));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			firstFrame = false;
+		}
+		
+        if (bufferInfo.size > 0) {
+            byte[] data = new byte[bufferInfo.size];
+            byteBuffer.get(data);
+            byteBuffer.position(bufferInfo.offset);
+            String headerhex = "00000001";
+            try {
+            	outputStream.write(hexStr2Bytes(headerhex));
+                outputStream.write(data);
+            } catch (IOException ioe) {
+                Log.w(TAG, "failed writing debug data to file");
+                throw new RuntimeException(ioe);
+            }
+        }
 		
 	}
+	
 
+    public static byte[] hexStr2Bytes(String src){
+        /*对输入值进行规范化整理*/
+        src = src.trim().replace(" ", "").toUpperCase(Locale.US);
+        //处理值初始化
+        int m=0,n=0;
+        int iLen=src.length()/2; //计算长度
+        byte[] ret = new byte[iLen]; //分配存储空间
+
+        for (int i = 0; i < iLen; i++){
+
+
+            m=i*2+1;
+            n=m+1;
+            ret[i] = (byte)(Integer.decode("0x"+ src.substring(i*2, m) + src.substring(m,n)) & 0xFF);
+        }
+        return ret;
+    }
+
+    static {
+        System.loadLibrary("publisher");
+      }
 }

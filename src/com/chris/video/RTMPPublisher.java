@@ -5,5 +5,9 @@ package com.chris.video;
  */
 public class RTMPPublisher {
 
-    public native void publish(int pipeId);
+	public native void setAudioPipeId(int audioPipeId);
+	
+	public native void setVideoPipeId(int videoPipeId);
+	
+    public native void publish();
 }

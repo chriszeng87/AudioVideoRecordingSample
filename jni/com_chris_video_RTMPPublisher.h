@@ -7,13 +7,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+JNIEXPORT void JNICALL Java_com_chris_video_RTMPPublisher_setAudioPipeId
+  (JNIEnv * env, jobject obj, jint audioPipeId);
+
+JNIEXPORT void JNICALL Java_com_chris_video_RTMPPublisher_setVideoPipeId
+  (JNIEnv * env, jobject obj, jint videoPipeId);
+
+
 /*
  * Class:     com_chris_video_RTMPPublisher
  * Method:    publish
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_com_chris_video_RTMPPublisher_publish
-  (JNIEnv * env, jobject obj, jint pipeId);
+  (JNIEnv * env, jobject obj);
+
+
 
 #ifdef __cplusplus
 }

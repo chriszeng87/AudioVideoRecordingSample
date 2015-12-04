@@ -55,8 +55,9 @@ public class MediaAudioEncoder extends MediaEncoder {
 
     private AudioThread mAudioThread = null;
 
-	public MediaAudioEncoder(final MediaMuxerWrapper muxer, final MediaEncoderListener listener) {
+	public MediaAudioEncoder(RTMPPublisher publisher,final MediaMuxerWrapper muxer, final MediaEncoderListener listener) {
 		super(muxer, listener);
+		mPublisher = publisher;
 	}
 
 	@Override
@@ -72,16 +73,16 @@ public class MediaAudioEncoder extends MediaEncoder {
         }
 		if (DEBUG) Log.i(TAG, "selected codec: " + audioCodecInfo.getName());
 
-        mPublisher = new RTMPPublisher();
         try {
             pipeDes = ParcelFileDescriptor.createPipe();
         }
         catch (IOException e){
             e.printStackTrace();
         }
+        mPublisher.setAudioPipeId(pipeDes[0].getFd());
 
         outputStream = null;
-        String fileName =  "/sdcard/test2015.aac";
+        String fileName =  "/sdcard/test2016.aac";
         try {
             outputStream = new FileOutputStream(pipeDes[1].getFileDescriptor());
             Log.d(TAG, "encoded output will be saved as " + fileName);
@@ -89,7 +90,7 @@ public class MediaAudioEncoder extends MediaEncoder {
             Log.w(TAG, "Unable to create debug output file " + fileName);
             throw new RuntimeException(ioe);
         }
-        mPublisher.publish(pipeDes[0].getFd());
+//        mPublisher.publish();
 		
         final MediaFormat audioFormat = MediaFormat.createAudioFormat(MIME_TYPE, SAMPLE_RATE, 1);
 		audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
@@ -98,6 +99,14 @@ public class MediaAudioEncoder extends MediaEncoder {
 		audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
 //		audioFormat.setLong(MediaFormat.KEY_MAX_INPUT_SIZE, inputFile.length());
 //      audioFormat.setLong(MediaFormat.KEY_DURATION, (long)durationInMs );
+//        byte[] header = new byte[4];
+//        header[0] = (byte)0xAE;
+//        header[1] = (byte)0x00;
+//        header[2] = (byte)0x13;
+//        header[3] = (byte)0x90;
+//        
+//        outputStream.write(header);
+
 		if (DEBUG) Log.i(TAG, "format: " + audioFormat);
         mMediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
         mMediaCodec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -302,6 +311,9 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
                 header[5] |= (byte)0x1F;
                 header[6] = (byte)0xFC;
                 header[6] |= 0;
+//                byte[] packetHeader = new byte[2];
+//                packetHeader[0] =(byte) 0xAE;
+//                packetHeader[1] = (byte) 0x01;
                 
                 try {
                 	outputStream.write(header);
@@ -316,6 +328,6 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
     
     static {
       System.loadLibrary("publisher");
-  }
+    }
 
 }
