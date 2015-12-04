@@ -22,10 +22,15 @@ void * start_publish(void* args)
     arguments[0] = "ffmpeg";
     arguments[1] = "-re";
     arguments[2] = "-i";
-    char input[20];
-    memset(input, 0, sizeof(input));
-    sprintf(input, "pipe:%d", video_pipe_id);
-    arguments[3] = input;//"/sdcard/test2016.aac"; //pipe
+    char vinput[20];
+    memset(vinput, 0, sizeof(vinput));
+    sprintf(vinput, "pipe:%d", video_pipe_id);
+    arguments[3] = vinput;//"/sdcard/test2016.aac"; //pipe
+//    arguments[4] = "-i";
+//    char ainput[20];
+//    memset(ainput, 0, sizeof(ainput));
+//    sprintf(ainput, "pipe:%d", audio_pipe_id);
+//    arguments[5] = ainput;//"/sdcard/test2016.aac"; //pipe
     arguments[4] = "-acodec";
     arguments[5] = "copy";
     arguments[6] = "-vcodec";
