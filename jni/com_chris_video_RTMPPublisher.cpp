@@ -21,16 +21,16 @@ void * start_publish(void* args)
 
     arguments[0] = "ffmpeg";
     arguments[1] = "-re";
+//    arguments[2] = "-i";
+//    char vinput[20];
+//    memset(vinput, 0, sizeof(vinput));
+//    sprintf(vinput, "pipe:%d", video_pipe_id);
+//    arguments[3] = vinput;//"/sdcard/test2016.aac"; //pipe
     arguments[2] = "-i";
-    char vinput[20];
-    memset(vinput, 0, sizeof(vinput));
-    sprintf(vinput, "pipe:%d", video_pipe_id);
-    arguments[3] = vinput;//"/sdcard/test2016.aac"; //pipe
-//    arguments[4] = "-i";
-//    char ainput[20];
-//    memset(ainput, 0, sizeof(ainput));
-//    sprintf(ainput, "pipe:%d", audio_pipe_id);
-//    arguments[5] = ainput;//"/sdcard/test2016.aac"; //pipe
+    char ainput[20];
+    memset(ainput, 0, sizeof(ainput));
+    sprintf(ainput, "pipe:%d", audio_pipe_id);
+    arguments[3] = ainput;//"/sdcard/test2016.aac"; //pipe
     arguments[4] = "-acodec";
     arguments[5] = "copy";
     arguments[6] = "-vcodec";
@@ -39,8 +39,7 @@ void * start_publish(void* args)
     arguments[9] = "flv";
     arguments[10] = "-bsf:a";
     arguments[11] = "aac_adtstoasc";
-    arguments[12] = //"/sdcard/test.mp4";
-    		"rtmp://120.132.75.127/demo/chris12";
+    arguments[12] = "/sdcard/test.flv";
 
     int result = ffmpeg_main(numberOfArgs, arguments);
 

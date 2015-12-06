@@ -89,6 +89,7 @@ public class MediaAudioEncoder extends MediaEncoder {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		Log.e("Chris","----------pipeDes[0].getFd() = " + pipeDes[0].getFd());
 		mPublisher.setAudioPipeId(pipeDes[0].getFd());
 
 		outputStream = null;
@@ -100,7 +101,7 @@ public class MediaAudioEncoder extends MediaEncoder {
 			Log.w(TAG, "Unable to create debug output file " + fileName);
 			throw new RuntimeException(ioe);
 		}
-		// mPublisher.publish();
+		mPublisher.publish();
 
 		final MediaFormat audioFormat = MediaFormat.createAudioFormat(
 				MIME_TYPE, SAMPLE_RATE, 1);
@@ -353,8 +354,10 @@ public class MediaAudioEncoder extends MediaEncoder {
 						// packetHeader[1] = (byte) 0x01;
 
 						try {
-							outputStream.write(header);
-							outputStream.write(data);
+							if (outputStream != null) {
+								outputStream.write(header);
+								outputStream.write(data);
+							}
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();

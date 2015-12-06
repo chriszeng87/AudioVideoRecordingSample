@@ -32,6 +32,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.hardware.Camera.Size;
 import android.opengl.EGL14;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -511,6 +512,7 @@ public final class CameraGLView extends GLSurfaceView {
 					// this is a sample project and just use fixed value
 					// if you want to use other size, you also need to change the recording size.
 					params.setPreviewSize(1280, 720);
+					List<Size> sizes = params.getSupportedPictureSizes();
 /*					final Size preferedSize = params.getPreferredPreviewSizeForVideo();
 					if (preferedSize != null) {
 						params.setPreviewSize(preferedSize.width, preferedSize.height);
