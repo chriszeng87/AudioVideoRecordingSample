@@ -55,7 +55,7 @@ public class MediaAudioEncoder extends MediaEncoder {
 														// bytes/frame/channel
 	public static final int FRAMES_PER_BUFFER = 25; // AAC, frame/buffer/sec
 
-	private ParcelFileDescriptor[] pipeDes;
+//	private ParcelFileDescriptor[] pipeDes;
 	private FileOutputStream outputStream;
 	private RTMPPublisher mPublisher;
 	private ExecutorService mService;
@@ -84,24 +84,24 @@ public class MediaAudioEncoder extends MediaEncoder {
 		if (DEBUG)
 			Log.i(TAG, "selected codec: " + audioCodecInfo.getName());
 
-		try {
-			pipeDes = ParcelFileDescriptor.createPipe();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Log.e("Chris","----------pipeDes[0].getFd() = " + pipeDes[0].getFd());
-		mPublisher.setAudioPipeId(pipeDes[0].getFd());
+//		try {
+//			pipeDes = ParcelFileDescriptor.createPipe();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		Log.e("Chris","----------pipeDes[0].getFd() = " + pipeDes[0].getFd());
+//		mPublisher.setAudioPipeId(pipeDes[0].getFd());
 
-		outputStream = null;
-		String fileName = "/sdcard/test2016.aac";
-		try {
-			outputStream = new FileOutputStream(pipeDes[1].getFileDescriptor());
-			Log.d(TAG, "encoded output will be saved as " + fileName);
-		} catch (Exception ioe) {
-			Log.w(TAG, "Unable to create debug output file " + fileName);
-			throw new RuntimeException(ioe);
-		}
-		mPublisher.publish();
+//		outputStream = null;
+//		String fileName = "/sdcard/test2016.aac";
+//		try {
+//			outputStream = new FileOutputStream(mPublisher.getAudioWritePipeId());
+//			Log.d(TAG, "encoded output will be saved as " + fileName);
+//		} catch (Exception ioe) {
+//			Log.w(TAG, "Unable to create debug output file " + fileName);
+//			throw new RuntimeException(ioe);
+//		}
+//		mPublisher.publish();
 
 		final MediaFormat audioFormat = MediaFormat.createAudioFormat(
 				MIME_TYPE, SAMPLE_RATE, 1);
@@ -151,22 +151,22 @@ public class MediaAudioEncoder extends MediaEncoder {
 
 	@Override
 	protected void release() {
-		if (outputStream != null) {
-			try {
-				outputStream.close();
-			} catch (IOException ioe) {
-				Log.w(TAG, "failed closing debug file");
-				throw new RuntimeException(ioe);
-			}
-		}
+//		if (outputStream != null) {
+//			try {
+//				outputStream.close();
+//			} catch (IOException ioe) {
+//				Log.w(TAG, "failed closing debug file");
+//				throw new RuntimeException(ioe);
+//			}
+//		}
 		mService.shutdown();
-		try {
-			pipeDes[0].close();
-			pipeDes[1].close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			pipeDes[0].close();
+//			pipeDes[1].close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		mAudioThread = null;
 		super.release();
 	}
@@ -328,44 +328,44 @@ public class MediaAudioEncoder extends MediaEncoder {
 
 	protected void postProcessEncodedData(final ByteBuffer byteBuffer,
 			final BufferInfo bufferInfo) {
-		mService.submit(new Runnable() {
-
-			public void run() {
-				if (outputStream != null) {
-					if (bufferInfo.size > 0) {
-						byte[] data = new byte[bufferInfo.size];
-						byteBuffer.get(data);
-						byteBuffer.position(bufferInfo.offset);
-						byte[] header = new byte[7];
-						header[0] = (byte) 0xFF;
-						header[1] = (byte) 0xF1;
-						header[2] = (byte) 0x50;
-						header[3] = (byte) 0x40;
-						;
-						int frame_len = bufferInfo.size + 7;
-						header[3] |= (byte) ((frame_len & 0x1800) >> 11);
-						header[4] |= (byte) ((frame_len & 0x7f8) >> 3);
-						header[5] = (byte) ((frame_len & 0x7) << 5);
-						header[5] |= (byte) 0x1F;
-						header[6] = (byte) 0xFC;
-						header[6] |= 0;
-						// byte[] packetHeader = new byte[2];
-						// packetHeader[0] =(byte) 0xAE;
-						// packetHeader[1] = (byte) 0x01;
-
-						try {
-							if (outputStream != null) {
-								outputStream.write(header);
-								outputStream.write(data);
-							}
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		});
+//		mService.submit(new Runnable() {
+//
+//			public void run() {
+//				if (outputStream != null) {
+//					if (bufferInfo.size > 0) {
+//						byte[] data = new byte[bufferInfo.size];
+//						byteBuffer.get(data);
+//						byteBuffer.position(bufferInfo.offset);
+//						byte[] header = new byte[7];
+//						header[0] = (byte) 0xFF;
+//						header[1] = (byte) 0xF1;
+//						header[2] = (byte) 0x50;
+//						header[3] = (byte) 0x40;
+//						;
+//						int frame_len = bufferInfo.size + 7;
+//						header[3] |= (byte) ((frame_len & 0x1800) >> 11);
+//						header[4] |= (byte) ((frame_len & 0x7f8) >> 3);
+//						header[5] = (byte) ((frame_len & 0x7) << 5);
+//						header[5] |= (byte) 0x1F;
+//						header[6] = (byte) 0xFC;
+//						header[6] |= 0;
+//						// byte[] packetHeader = new byte[2];
+//						// packetHeader[0] =(byte) 0xAE;
+//						// packetHeader[1] = (byte) 0x01;
+//
+//						try {
+//							if (outputStream != null) {
+//								outputStream.write(header);
+//								outputStream.write(data);
+//							}
+//						} catch (IOException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//					}
+//				}
+//			}
+//		});
 	}
 
 	static {

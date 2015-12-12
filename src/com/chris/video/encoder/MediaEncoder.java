@@ -364,7 +364,7 @@ LOOP:	while (mIsCapturing) {
                     }
                     // write encoded data to muxer(need to adjust presentationTimeUs.
                    	mBufferInfo.presentationTimeUs = getPTSUs();
-                   	postProcessEncodedData(encodedData, mBufferInfo);
+//                   	postProcessEncodedData(encodedData, mBufferInfo);
                    	muxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
 					prevOutputPTSUs = mBufferInfo.presentationTimeUs;
                 }

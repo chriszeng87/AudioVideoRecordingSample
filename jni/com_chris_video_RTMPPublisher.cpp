@@ -16,30 +16,32 @@ static int video_pipe_id;
 void * start_publish(void* args)
 {
 //    int argc, char **argv
-    int numberOfArgs = 13;
+    int numberOfArgs = 15;
     char** arguments = (char**)calloc(numberOfArgs, sizeof(char*));
 
     arguments[0] = "ffmpeg";
     arguments[1] = "-re";
-//    arguments[2] = "-i";
-//    char vinput[20];
-//    memset(vinput, 0, sizeof(vinput));
-//    sprintf(vinput, "pipe:%d", video_pipe_id);
-//    arguments[3] = vinput;//"/sdcard/test2016.aac"; //pipe
     arguments[2] = "-i";
-    char ainput[20];
-    memset(ainput, 0, sizeof(ainput));
-    sprintf(ainput, "pipe:%d", audio_pipe_id);
-    arguments[3] = ainput;//"/sdcard/test2016.aac"; //pipe
-    arguments[4] = "-acodec";
-    arguments[5] = "copy";
-    arguments[6] = "-vcodec";
+    char vinput[20];
+    memset(vinput, 0, sizeof(vinput));
+    sprintf(vinput, "pipe:%d", video_pipe_id);
+    arguments[3] = vinput;//"/sdcard/test2016.h264"; //pipe
+//    arguments[4] = "-i";
+//    char ainput[20];
+//    memset(ainput, 0, sizeof(ainput));
+//    sprintf(ainput, "pipe:%d", audio_pipe_id);
+//    arguments[5] = ainput;//"/sdcard/test2016.aac"; //pipe
+    arguments[6] = "-acodec";
     arguments[7] = "copy";
-    arguments[8] = "-f";
-    arguments[9] = "flv";
-    arguments[10] = "-bsf:a";
-    arguments[11] = "aac_adtstoasc";
-    arguments[12] = "/sdcard/test.flv";
+    arguments[8] = "-vcodec";
+    arguments[9] = "copy";
+    arguments[10] = "-f";
+    arguments[11] = "flv";
+//    arguments[12] = "-bsf:a";
+//    arguments[13] = "aac_adtstoasc";
+//    arguments[14] = "-bsf";
+//    arguments[15] = "h264_mp4toannexb";
+    arguments[14] = "/sdcard/test.h264";
 
     int result = ffmpeg_main(numberOfArgs, arguments);
 

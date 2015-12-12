@@ -138,6 +138,7 @@ public class CameraFragment extends Fragment {
 		try {
 			mRecordButton.setColorFilter(0xffff0000);	// turn red
 			mPublisher = new RTMPPublisher();
+			mPublisher.init();
 			mMuxer = new MediaMuxerWrapper(".mp4");	// if you record audio only, ".m4a" is also OK.
 			if (true) {
 				// for video capturing
@@ -165,6 +166,9 @@ public class CameraFragment extends Fragment {
 			mMuxer.stopRecording();
 			mMuxer = null;
 			// you should not wait here
+		}
+		if (mPublisher != null) {
+			mPublisher.release();
 		}
 	}
 

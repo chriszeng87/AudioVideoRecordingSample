@@ -50,17 +50,17 @@ public class MediaVideoEncoder extends MediaEncoder {
 	private static final String MIME_TYPE = "video/avc";
 	// parameters for recording
 	private static final int FRAME_RATE = 25;
-	private static final float BPP = 0.5f;
+	private static final float BPP = 0.05f;
 
 	private final int mWidth;
 	private final int mHeight;
 	private RenderHandler mRenderHandler;
 	private Surface mSurface;
 //	private ParcelFileDescriptor[] pipeDes;
-//	private FileOutputStream outputStream;
-//	private RTMPPublisher mPublisher;
-//	private boolean firstFrame;
-//	private ExecutorService mService;
+	private FileOutputStream outputStream;
+	private RTMPPublisher mPublisher;
+	private boolean firstFrame;
+	private ExecutorService mService;
 
 	public MediaVideoEncoder(RTMPPublisher publisher,
 			final MediaMuxerWrapper muxer, final MediaEncoderListener listener,
@@ -68,7 +68,7 @@ public class MediaVideoEncoder extends MediaEncoder {
 		super(muxer, listener);
 		if (DEBUG)
 			Log.i(TAG, "MediaVideoEncoder: ");
-//		mPublisher = publisher;
+		mPublisher = publisher;
 		mWidth = width;
 		mHeight = height;
 		mRenderHandler = RenderHandler.createHandler(TAG);
@@ -95,8 +95,8 @@ public class MediaVideoEncoder extends MediaEncoder {
 			Log.i(TAG, "prepare: ");
 		mTrackIndex = -1;
 		mMuxerStarted = mIsEOS = false;
-//		firstFrame = true;
-//		mService = Executors.newSingleThreadExecutor();
+		firstFrame = true;
+		mService = Executors.newSingleThreadExecutor();
 
 		final MediaCodecInfo videoCodecInfo = selectVideoCodec(MIME_TYPE);
 		if (videoCodecInfo == null) {
@@ -115,15 +115,15 @@ public class MediaVideoEncoder extends MediaEncoder {
 //		Log.e("Chris","---------pipeDes[0].getFd() = " + pipeDes[0].getFd());
 //		mPublisher.publish();
 //
-//		outputStream = null;
-//		String fileName = "/sdcard/test2017.h264";
-//		try {
-//			outputStream = new FileOutputStream(pipeDes[1].getFileDescriptor());
-//			Log.d(TAG, "encoded output will be saved as " + fileName);
-//		} catch (Exception ioe) {
-//			Log.w(TAG, "Unable to create debug output file " + fileName);
-//			throw new RuntimeException(ioe);
-//		}
+		outputStream = null;
+		String fileName = "/sdcard/test2017.h264";
+		try {
+			outputStream = new FileOutputStream(mPublisher.getVideoWritePipeId());
+			Log.d(TAG, "encoded output will be saved as " + fileName);
+		} catch (Exception ioe) {
+			Log.w(TAG, "Unable to create debug output file " + fileName);
+			throw new RuntimeException(ioe);
+		}
 
 		final MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE,
 				mWidth, mHeight);
@@ -133,7 +133,7 @@ public class MediaVideoEncoder extends MediaEncoder {
 		format.setInteger(MediaFormat.KEY_BIT_RATE, calcBitRate());
 		Log.e("Chris","--------calcBitRate() = " + calcBitRate());
 		format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-		format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 10);
+		format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
 		if (DEBUG)
 			Log.i(TAG, "format: " + format);
 
@@ -171,16 +171,14 @@ public class MediaVideoEncoder extends MediaEncoder {
 			mRenderHandler.release();
 			mRenderHandler = null;
 		}
-//		try {
-//			if (outputStream != null) {
-//				outputStream.close();
-//				pipeDes[0].close();
-//				pipeDes[1].close();
-//			}
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			if (outputStream != null) {
+				outputStream.close();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		super.release();
 	}
 
@@ -304,35 +302,35 @@ public class MediaVideoEncoder extends MediaEncoder {
 	@Override
 	protected void postProcessEncodedData(final ByteBuffer byteBuffer,
 			final BufferInfo bufferInfo) {
-//		mService.submit(new Runnable() {
-//
-//			public void run() {
-//				if (firstFrame) {
-//					String avcC = "000000016742801FDA02D0286806D0A1350000000168CE06E2";
-//
-//					try {
-//						outputStream.write(hexStr2Bytes(avcC));
-//					} catch (IOException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					Log.e("Chris","-------write avcc");
-//					firstFrame = false;
-//				}
-//
-//				if (bufferInfo.size > 0) {
-//					byte[] data = new byte[bufferInfo.size];
-//					byteBuffer.get(data);
-//					byteBuffer.position(bufferInfo.offset);
-//					try {
-//						outputStream.write(data);
-//					} catch (IOException ioe) {
-//						Log.w(TAG, "failed writing debug data to file");
-//						throw new RuntimeException(ioe);
-//					}
-//				}
-//			}
-//		});
+		mService.submit(new Runnable() {
+
+			public void run() {
+				if (firstFrame) {
+					String avcC = "000000016742801FDA02D0286806D0A1350000000168CE06E2";
+
+					try {
+						outputStream.write(hexStr2Bytes(avcC));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					Log.e("Chris","-------write avcc");
+					firstFrame = false;
+				}
+
+				if (bufferInfo.size > 0) {
+					byte[] data = new byte[bufferInfo.size];
+					byteBuffer.get(data);
+					byteBuffer.position(bufferInfo.offset);
+					try {
+						outputStream.write(data);
+					} catch (IOException ioe) {
+						Log.w(TAG, "failed writing debug data to file");
+						throw new RuntimeException(ioe);
+					}
+				}
+			}
+		});
 
 	}
 
