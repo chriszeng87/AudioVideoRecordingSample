@@ -359,6 +359,9 @@ LOOP:	while (mIsCapturing) {
                 	// this never should come...may be a MediaCodec internal error
                     throw new RuntimeException("encoderOutputBuffer " + encoderStatus + " was null");
                 }
+                if (mWeakFFmpegMuxer.get() != null) {
+                	mWeakFFmpegMuxer.get().writeSampleData(mMediaCodec, mTrackIndex, encoderStatus, encodedData, mBufferInfo);
+                }
                 if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
                 	// You shoud set output format to muxer here when you target Android4.3 or less
                 	// but MediaCodec#getOutputFormat can not call here(because INFO_OUTPUT_FORMAT_CHANGED don't come yet)
@@ -367,6 +370,10 @@ LOOP:	while (mIsCapturing) {
 					if (DEBUG) Log.d(TAG, "drain:BUFFER_FLAG_CODEC_CONFIG");
 					mBufferInfo.size = 0;
                 }
+                
+//                if (mWeakFFmpegMuxer.get() != null) {
+//                	mWeakFFmpegMuxer.get().writeSampleData(mMediaCodec, mTrackIndex, encoderStatus, encodedData, mBufferInfo);
+//                }
 
                 if (mBufferInfo.size != 0) {
                 	// encoded data is ready, clear waiting counter
@@ -377,12 +384,12 @@ LOOP:	while (mIsCapturing) {
                     }
                     // write encoded data to muxer(need to adjust presentationTimeUs.
                    	mBufferInfo.presentationTimeUs = getPTSUs();
-//                   	postProcessEncodedData(encodedData, mBufferInfo);
+//                   	postProcessEncodedData(encodedData, mBufferInfo, encoderStatus);
                    	muxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
 					prevOutputPTSUs = mBufferInfo.presentationTimeUs;
                 }
                 // return buffer to encoder
-                mMediaCodec.releaseOutputBuffer(encoderStatus, false);
+//                mMediaCodec.releaseOutputBuffer(encoderStatus, false);
                 if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 	// when EOS come.
                		mIsCapturing = false;
@@ -409,6 +416,6 @@ LOOP:	while (mIsCapturing) {
 		return result;
     }
     
-    protected abstract void postProcessEncodedData(ByteBuffer byteBuffer, BufferInfo bufferInfo);
+    protected abstract void postProcessEncodedData(ByteBuffer byteBuffer, BufferInfo bufferInfo, int encoderStatus);
 
 }

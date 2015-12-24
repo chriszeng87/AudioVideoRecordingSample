@@ -298,18 +298,20 @@ public class MediaVideoEncoder extends MediaEncoder {
 
 	@Override
 	protected void postProcessEncodedData(final ByteBuffer byteBuffer,
-			final BufferInfo bufferInfo) {
+			final BufferInfo bufferInfo, final int encoderStatus) {
 		mService.submit(new Runnable() {
 
 			public void run() {
-		        if (((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0)) {
-		                // Capture H.264 SPS + PPS Data
-		        		if (mWeakFFmpegMuxer.get() != null) {
-		        			mWeakFFmpegMuxer.get().captureH264MetaData(byteBuffer, bufferInfo);
-//		                releaseOutputBufer(encoder, encodedData, bufferIndex, trackIndex);
-		        		}
-		                return;
-		        }
+				
+//				mWeakFFmpegMuxer.get().writeSampleData(mMediaCodec, trackIndex, encoderStatus, byteBuffer, bufferInfo);
+//		        if (((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0)) {
+//		                // Capture H.264 SPS + PPS Data
+//		        		if (mWeakFFmpegMuxer.get() != null) {
+//		        			mWeakFFmpegMuxer.get().captureH264MetaData(byteBuffer, bufferInfo);
+////		                releaseOutputBufer(encoder, encodedData, bufferIndex, trackIndex);
+//		        		}
+//		                return;
+//		        }
 				if (firstFrame) {
 					String avcC = "000000016742801FDA02D0286806D0A1350000000168CE06E2";
 

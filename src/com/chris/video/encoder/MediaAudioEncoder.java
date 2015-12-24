@@ -325,7 +325,7 @@ public class MediaAudioEncoder extends MediaEncoder {
 	// }
 
 	protected void postProcessEncodedData(final ByteBuffer byteBuffer,
-			final BufferInfo bufferInfo) {
+			final BufferInfo bufferInfo, int encoderStatus) {
 //		mService.submit(new Runnable() {
 //
 //			public void run() {
