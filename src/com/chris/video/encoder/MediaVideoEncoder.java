@@ -36,11 +36,10 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.opengl.EGLContext;
-import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.Surface;
 
-import com.chris.video.RTMPPublisher;
+import com.chris.video.FFmpegMuxer;
 import com.chris.video.glutils.RenderHandler;
 
 public class MediaVideoEncoder extends MediaEncoder {
@@ -57,18 +56,16 @@ public class MediaVideoEncoder extends MediaEncoder {
 	private RenderHandler mRenderHandler;
 	private Surface mSurface;
 //	private ParcelFileDescriptor[] pipeDes;
-	private FileOutputStream outputStream;
-	private RTMPPublisher mPublisher;
+//	private FileOutputStream outputStream;
 	private boolean firstFrame;
 	private ExecutorService mService;
 
-	public MediaVideoEncoder(RTMPPublisher publisher,
+	public MediaVideoEncoder(FFmpegMuxer ffmpegMuxer,
 			final MediaMuxerWrapper muxer, final MediaEncoderListener listener,
 			final int width, final int height) {
-		super(muxer, listener);
+		super(ffmpegMuxer, muxer, listener);
 		if (DEBUG)
 			Log.i(TAG, "MediaVideoEncoder: ");
-		mPublisher = publisher;
 		mWidth = width;
 		mHeight = height;
 		mRenderHandler = RenderHandler.createHandler(TAG);
@@ -115,15 +112,15 @@ public class MediaVideoEncoder extends MediaEncoder {
 //		Log.e("Chris","---------pipeDes[0].getFd() = " + pipeDes[0].getFd());
 //		mPublisher.publish();
 //
-		outputStream = null;
-		String fileName = "/sdcard/test2017.h264";
-		try {
-			outputStream = new FileOutputStream(mPublisher.getVideoWritePipeId());
-			Log.d(TAG, "encoded output will be saved as " + fileName);
-		} catch (Exception ioe) {
-			Log.w(TAG, "Unable to create debug output file " + fileName);
-			throw new RuntimeException(ioe);
-		}
+//		outputStream = null;
+//		String fileName = "/sdcard/test2017.h264";
+//		try {
+//			outputStream = new FileOutputStream(mPublisher.getVideoWritePipeId());
+//			Log.d(TAG, "encoded output will be saved as " + fileName);
+//		} catch (Exception ioe) {
+//			Log.w(TAG, "Unable to create debug output file " + fileName);
+//			throw new RuntimeException(ioe);
+//		}
 
 		final MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE,
 				mWidth, mHeight);
@@ -171,14 +168,14 @@ public class MediaVideoEncoder extends MediaEncoder {
 			mRenderHandler.release();
 			mRenderHandler = null;
 		}
-		try {
-			if (outputStream != null) {
-				outputStream.close();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			if (outputStream != null) {
+//				outputStream.close();
+//			}
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		super.release();
 	}
 
@@ -186,7 +183,7 @@ public class MediaVideoEncoder extends MediaEncoder {
 		final int bitrate = (int) (BPP * FRAME_RATE * mWidth * mHeight);
 		Log.i(TAG,
 				String.format("bitrate=%5.2f[Mbps]", bitrate / 1024f / 1024f));
-		return bitrate;
+		return 1000000;//bitrate;
 	}
 
 	/**
@@ -305,15 +302,24 @@ public class MediaVideoEncoder extends MediaEncoder {
 		mService.submit(new Runnable() {
 
 			public void run() {
+		        if (((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0)) {
+		                // Capture H.264 SPS + PPS Data
+		        		if (mWeakFFmpegMuxer.get() != null) {
+		        			mWeakFFmpegMuxer.get().captureH264MetaData(byteBuffer, bufferInfo);
+//		                releaseOutputBufer(encoder, encodedData, bufferIndex, trackIndex);
+		        		}
+		                return;
+		        }
 				if (firstFrame) {
 					String avcC = "000000016742801FDA02D0286806D0A1350000000168CE06E2";
 
-					try {
-						outputStream.write(hexStr2Bytes(avcC));
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					//TODO Chris
+//					try {
+//						outputStream.write(hexStr2Bytes(avcC));
+//					} catch (IOException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
 					Log.e("Chris","-------write avcc");
 					firstFrame = false;
 				}
@@ -322,12 +328,12 @@ public class MediaVideoEncoder extends MediaEncoder {
 					byte[] data = new byte[bufferInfo.size];
 					byteBuffer.get(data);
 					byteBuffer.position(bufferInfo.offset);
-					try {
-						outputStream.write(data);
-					} catch (IOException ioe) {
-						Log.w(TAG, "failed writing debug data to file");
-						throw new RuntimeException(ioe);
-					}
+//					try {
+//						outputStream.write(data);
+//					} catch (IOException ioe) {
+//						Log.w(TAG, "failed writing debug data to file");
+//						throw new RuntimeException(ioe);
+//					}
 				}
 			}
 		});

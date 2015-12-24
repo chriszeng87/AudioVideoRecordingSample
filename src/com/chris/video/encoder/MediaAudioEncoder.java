@@ -40,7 +40,7 @@ import android.media.MediaRecorder;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import com.chris.video.RTMPPublisher;
+import com.chris.video.FFmpegMuxer;
 
 public class MediaAudioEncoder extends MediaEncoder {
 	private static final boolean DEBUG = false; // TODO set false on release
@@ -57,15 +57,13 @@ public class MediaAudioEncoder extends MediaEncoder {
 
 //	private ParcelFileDescriptor[] pipeDes;
 	private FileOutputStream outputStream;
-	private RTMPPublisher mPublisher;
 	private ExecutorService mService;
 
 	private AudioThread mAudioThread = null;
 
-	public MediaAudioEncoder(RTMPPublisher publisher,
+	public MediaAudioEncoder(FFmpegMuxer ffmpegMuxer,
 			final MediaMuxerWrapper muxer, final MediaEncoderListener listener) {
-		super(muxer, listener);
-		mPublisher = publisher;
+		super(ffmpegMuxer,muxer, listener);
 	}
 
 	@Override

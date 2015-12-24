@@ -26,11 +26,7 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)
 
 
                    
-LOCAL_SRC_FILES :=  ffmpeg.c\
-                    cmdutils.c\
-                    ffmpeg_opt.c\
-                    ffmpeg_filter.c\
-                    com_chris_video_RTMPPublisher.cpp \
+LOCAL_SRC_FILES :=  FFmpegWrapper.c\
 
                    
 

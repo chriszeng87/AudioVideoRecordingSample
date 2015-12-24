@@ -34,7 +34,9 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.chris.video.RTMPPublisher;
+import com.chris.video.FFmpegMuxer;
+import com.chris.video.Muxer;
+import com.chris.video.Muxer.FORMAT;
 import com.chris.video.encoder.MediaAudioEncoder;
 import com.chris.video.encoder.MediaEncoder;
 import com.chris.video.encoder.MediaMuxerWrapper;
@@ -62,7 +64,7 @@ public class CameraFragment extends Fragment {
 	 */
 	private MediaMuxerWrapper mMuxer;
 	
-	private RTMPPublisher mPublisher;
+	private FFmpegMuxer mFFmpegMuxer;
 
 	public CameraFragment() {
 		// need default constructor
@@ -109,7 +111,7 @@ public class CameraFragment extends Fragment {
 				updateScaleModeText();
 				break;
 			case R.id.record_button:
-				if (mMuxer == null)
+				if (mMuxer == null && mFFmpegMuxer == null)
 					startRecording();
 				else
 					stopRecording();
@@ -137,16 +139,16 @@ public class CameraFragment extends Fragment {
 		if (DEBUG) Log.v(TAG, "startRecording:");
 		try {
 			mRecordButton.setColorFilter(0xffff0000);	// turn red
-			mPublisher = new RTMPPublisher();
-			mPublisher.init();
+			mFFmpegMuxer = FFmpegMuxer.create("/sdcard/test.flv",FORMAT.RTMP);
+//			mPublisher.init();
 			mMuxer = new MediaMuxerWrapper(".mp4");	// if you record audio only, ".m4a" is also OK.
 			if (true) {
 				// for video capturing
-				new MediaVideoEncoder(mPublisher, mMuxer, mMediaEncoderListener, mCameraView.getVideoWidth(), mCameraView.getVideoHeight());
+				new MediaVideoEncoder(mFFmpegMuxer, mMuxer, mMediaEncoderListener, mCameraView.getVideoWidth(), mCameraView.getVideoHeight());
 			}
 			if (true) {
 				// for audio capturing
-				new MediaAudioEncoder(mPublisher, mMuxer, mMediaEncoderListener);
+				new MediaAudioEncoder(mFFmpegMuxer, mMuxer, mMediaEncoderListener);
 			}
 			mMuxer.prepare();
 			mMuxer.startRecording();
@@ -167,8 +169,8 @@ public class CameraFragment extends Fragment {
 			mMuxer = null;
 			// you should not wait here
 		}
-		if (mPublisher != null) {
-			mPublisher.release();
+		if (mFFmpegMuxer != null) {
+			mFFmpegMuxer.release();
 		}
 	}
 

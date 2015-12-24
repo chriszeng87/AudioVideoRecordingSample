@@ -31,6 +31,8 @@ import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import com.chris.video.FFmpegMuxer;
+
 public abstract class MediaEncoder implements Runnable {
 	private static final boolean DEBUG = false;	// TODO set false on release
 	private static final String TAG = "MediaEncoder";
@@ -77,6 +79,8 @@ public abstract class MediaEncoder implements Runnable {
      * Weak refarence of MediaMuxerWarapper instance
      */
     protected final WeakReference<MediaMuxerWrapper> mWeakMuxer;
+    
+    protected final WeakReference<FFmpegMuxer> mWeakFFmpegMuxer;
     /**
      * BufferInfo instance for dequeuing
      */
@@ -84,9 +88,10 @@ public abstract class MediaEncoder implements Runnable {
 
     protected final MediaEncoderListener mListener;
 
-    public MediaEncoder(final MediaMuxerWrapper muxer, final MediaEncoderListener listener) {
+    public MediaEncoder(final FFmpegMuxer ffmpegMuxer, final MediaMuxerWrapper muxer, final MediaEncoderListener listener) {
     	if (listener == null) throw new NullPointerException("MediaEncoderListener is null");
     	if (muxer == null) throw new NullPointerException("MediaMuxerWrapper is null");
+    	mWeakFFmpegMuxer = new WeakReference<FFmpegMuxer>(ffmpegMuxer);
 		mWeakMuxer = new WeakReference<MediaMuxerWrapper>(muxer);
 		muxer.addEncoder(this);
 		mListener = listener;
@@ -228,6 +233,12 @@ public abstract class MediaEncoder implements Runnable {
 			}
         }
         if (mMuxerStarted) {
+        	final FFmpegMuxer ffmpegMuxer = mWeakFFmpegMuxer != null ? mWeakFFmpegMuxer.get() : null;
+        	if (ffmpegMuxer != null) {
+        		//TODO Chris
+        		ffmpegMuxer.forceStop();
+        	}
+        	
        		final MediaMuxerWrapper muxer = mWeakMuxer != null ? mWeakMuxer.get() : null;
        		if (muxer != null) {
        			try {
@@ -294,7 +305,8 @@ public abstract class MediaEncoder implements Runnable {
         ByteBuffer[] encoderOutputBuffers = mMediaCodec.getOutputBuffers();
         int encoderStatus, count = 0;
         final MediaMuxerWrapper muxer = mWeakMuxer.get();
-        if (muxer == null) {
+        final FFmpegMuxer ffmpegMuxer = mWeakFFmpegMuxer.get();
+        if (muxer == null || ffmpegMuxer == null) {
 //        	throw new NullPointerException("muxer is unexpectedly null");
         	Log.w(TAG, "muxer is unexpectedly null");
         	return;
@@ -325,6 +337,7 @@ LOOP:	while (mIsCapturing) {
 				// getOutputFormat should be called after INFO_OUTPUT_FORMAT_CHANGED otherwise crash.
                 final MediaFormat format = mMediaCodec.getOutputFormat(); // API >= 16
                	mTrackIndex = muxer.addTrack(format);
+               	ffmpegMuxer.addTrack(format);
                	mMuxerStarted = true;
                	if (!muxer.start()) {
                		// we should wait until muxer is ready
