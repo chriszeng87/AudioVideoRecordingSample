@@ -337,6 +337,7 @@ LOOP:	while (mIsCapturing) {
 				// getOutputFormat should be called after INFO_OUTPUT_FORMAT_CHANGED otherwise crash.
                 final MediaFormat format = mMediaCodec.getOutputFormat(); // API >= 16
                	mTrackIndex = muxer.addTrack(format);
+               	Log.e("Chris","---------mTrackIndex =" + mTrackIndex);
                	ffmpegMuxer.addTrack(format);
                	mMuxerStarted = true;
                	if (!muxer.start()) {
@@ -359,8 +360,8 @@ LOOP:	while (mIsCapturing) {
                 	// this never should come...may be a MediaCodec internal error
                     throw new RuntimeException("encoderOutputBuffer " + encoderStatus + " was null");
                 }
-                if (mWeakFFmpegMuxer.get() != null) {
-                	mWeakFFmpegMuxer.get().writeSampleData(mMediaCodec, mTrackIndex, encoderStatus, encodedData, mBufferInfo);
+                if (ffmpegMuxer!= null) {
+                	ffmpegMuxer.writeSampleData(mMediaCodec, mTrackIndex, encoderStatus, encodedData, mBufferInfo);
                 }
                 if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
                 	// You shoud set output format to muxer here when you target Android4.3 or less
@@ -371,9 +372,6 @@ LOOP:	while (mIsCapturing) {
 					mBufferInfo.size = 0;
                 }
                 
-//                if (mWeakFFmpegMuxer.get() != null) {
-//                	mWeakFFmpegMuxer.get().writeSampleData(mMediaCodec, mTrackIndex, encoderStatus, encodedData, mBufferInfo);
-//                }
 
                 if (mBufferInfo.size != 0) {
                 	// encoded data is ready, clear waiting counter

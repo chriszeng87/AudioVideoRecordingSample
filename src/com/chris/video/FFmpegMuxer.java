@@ -22,7 +22,7 @@ import android.util.Log;
 //      Remove 2 track assumption
 public class FFmpegMuxer extends Muxer implements Runnable {
     private static final String TAG = "FFmpegMuxer";
-    private static final boolean VERBOSE = false;        // Lots of logging
+    private static final boolean VERBOSE = true;        // Lots of logging
     private static final boolean TRACE = false;           // Systrace logs
     private static final boolean DEBUG_PKTS = false;     // Write each raw packet to file
 
@@ -109,6 +109,7 @@ public class FFmpegMuxer extends Muxer implements Runnable {
             trackIndex = mVideoTrackIndex;
         else
             trackIndex = mAudioTrackIndex;
+        Log.e("Chris", "---------addTrack");
 
         if (formatRequiresBuffering()) {
             mHandler.sendMessage(mHandler.obtainMessage(MSG_ADD_TRACK, trackFormat));
@@ -297,6 +298,7 @@ public class FFmpegMuxer extends Muxer implements Runnable {
         encodedData.put(videoConfig, 0, bufferInfo.size);
         encodedData.position(bufferInfo.offset);
         mH264Keyframe.put(videoConfig, 0, bufferInfo.size);
+        Log.e("Chris","---------captureH264MetaData");
     }
 
     /**
