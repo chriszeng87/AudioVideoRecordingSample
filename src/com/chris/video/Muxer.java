@@ -37,7 +37,7 @@ public abstract class Muxer {
 
     protected Muxer(String outputPath, FORMAT format){
         Log.i(TAG, "Created muxer for output: " + outputPath);
-//        mOutputPath = checkNotNull(outputPath);
+        mOutputPath = outputPath;
         mFormat = format;
         mNumTracks = 0;
         mNumTracksFinished = 0;
@@ -59,8 +59,7 @@ public abstract class Muxer {
      * @return
      */
     public String getOutputPath(){
-    	return "/sdcard/test.flv";
-//        return mOutputPath;
+        return mOutputPath;
     }
 
     /**

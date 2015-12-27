@@ -139,7 +139,7 @@ public class CameraFragment extends Fragment {
 		if (DEBUG) Log.v(TAG, "startRecording:");
 		try {
 			mRecordButton.setColorFilter(0xffff0000);	// turn red
-			mFFmpegMuxer = FFmpegMuxer.create("/sdcard/test.flv",FORMAT.RTMP);
+			mFFmpegMuxer = FFmpegMuxer.create("rtmp://120.132.75.127/demo/chris",FORMAT.RTMP);
 //			mPublisher.init();
 			mMuxer = new MediaMuxerWrapper(".mp4");	// if you record audio only, ".m4a" is also OK.
 			if (true) {
