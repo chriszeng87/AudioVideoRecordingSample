@@ -35,8 +35,8 @@ int videoStreamIndex = -1;
 // Video
 int VIDEO_PIX_FMT = PIX_FMT_YUV420P;
 int VIDEO_CODEC_ID = CODEC_ID_H264;
-int VIDEO_WIDTH = 1280;
-int VIDEO_HEIGHT = 720;
+int VIDEO_WIDTH = 720;
+int VIDEO_HEIGHT = 1280;
 
 // Audio
 int AUDIO_CODEC_ID = CODEC_ID_AAC;
