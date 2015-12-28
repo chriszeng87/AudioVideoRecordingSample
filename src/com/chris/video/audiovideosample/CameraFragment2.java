@@ -152,7 +152,7 @@ public class CameraFragment2 extends Fragment {
 	                    .withVideoBitrate(1000 * 1000)
 	                    .withPrivateVisibility(false)
 	                    .withLocation(true)
-	                    .withVideoResolution(1280, 720)
+	                    .withVideoResolution(720, 1280)
 	                    .build();
                     mBroadcaster = new Broadcaster(context, sessionConfig);
 //                    mBroadcaster.getEventBus().register(this);
