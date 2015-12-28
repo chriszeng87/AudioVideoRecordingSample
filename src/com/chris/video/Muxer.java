@@ -1,14 +1,16 @@
 package com.chris.video;
 
 
+import java.nio.ByteBuffer;
+
+import com.chris.video.event.MuxerFinishedEvent;
+
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.util.Log;
-
+import de.greenrobot.event.EventBus;
 //import com.google.common.eventbus.EventBus;
-
-import java.nio.ByteBuffer;
 
 //import io.kickflip.sdk.event.MuxerFinishedEvent;
 //
@@ -33,7 +35,7 @@ public abstract class Muxer {
     protected long mFirstPts;
     protected long mLastPts[];
 
-//    private EventBus mEventBus;
+    private EventBus mEventBus;
 
     protected Muxer(String outputPath, FORMAT format){
         Log.i(TAG, "Created muxer for output: " + outputPath);
@@ -48,9 +50,9 @@ public abstract class Muxer {
         }
     }
 
-//    public void setEventBus(EventBus eventBus){
-//        mEventBus = eventBus;
-//    }
+    public void setEventBus(EventBus eventBus){
+        mEventBus = eventBus;
+    }
 
     /**
      * Returns the absolute output path.
@@ -84,8 +86,8 @@ public abstract class Muxer {
     }
 
     public void release(){
-//        if(mEventBus != null)
-//            mEventBus.post(new MuxerFinishedEvent());
+        if(mEventBus != null)
+            mEventBus.post(new MuxerFinishedEvent());
     }
 
     public boolean isStarted(){
