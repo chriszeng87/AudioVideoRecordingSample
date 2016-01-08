@@ -92,16 +92,32 @@ public class CameraFragment2 extends Fragment {
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-		mCameraView.onResume();
+//		mCameraView.onResume();
+        if (mBroadcaster != null)
+            mBroadcaster.onHostActivityResumed();
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 //		stopRecording();
-		mCameraView.onPause();
+        if (mBroadcaster != null)
+            mBroadcaster.onHostActivityPaused();
+//		mCameraView.onPause();
 		super.onPause();
 	}
+	
+	
+
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();        
+		if (mBroadcaster != null && !mBroadcaster.isRecording())
+            mBroadcaster.release();
+	}
+
+
 
 	/**
 	 * method when touch record button
