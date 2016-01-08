@@ -151,12 +151,12 @@ public abstract class Muxer {
     	
         if (Build.VERSION.SDK_INT >= 21) return true;
 //
-//        switch(mFormat){
-//            case RTMP:
-//               return true;
-//            default:
+        switch(mFormat){
+            case RTMP:
+               return true;
+            default:
                 return false;
-//        }
+        }
     }
 
     /**
