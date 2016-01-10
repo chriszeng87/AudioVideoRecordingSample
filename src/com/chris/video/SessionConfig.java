@@ -25,7 +25,7 @@ public class SessionConfig {
     private int mHlsSegmentDuration;
 
     public SessionConfig(String outputFile) {
-        mVideoConfig = new VideoEncoderConfig(720, 1280, 2 * 1000 * 1000);
+        mVideoConfig = new VideoEncoderConfig(480, 640, 500 * 1000);
         mAudioConfig = new AudioEncoderConfig(1, 44100, 96 * 1000);
 
 //        mUUID = UUID.randomUUID();
@@ -237,9 +237,9 @@ public class SessionConfig {
         }
 
         private void setAVDefaults() {
-            mWidth = 720;
-            mHeight = 1280;
-            mVideoBitrate = 1000 * 1000;
+            mWidth = 480;
+            mHeight = 640;
+            mVideoBitrate = 500 * 1000;
 
             mAudioSamplerate = 44100;
             mAudioBitrate = 96 * 1000;

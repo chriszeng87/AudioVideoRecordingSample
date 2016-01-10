@@ -40,8 +40,8 @@ public class FFmpegWrapper {
      *
      */
     static public class AVOptions{
-        public int videoWidth = 720;
-        public int videoHeight = 1280;
+        public int videoWidth = 480;
+        public int videoHeight = 640;
 
         public int audioSampleRate = 44100;
         public int numAudioChannels = 1;
